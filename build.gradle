@@ -1,4 +1,4 @@
-// 루트는 빌드 대상이 아니다. 세 모듈(route-start, route-callback, route-callback-colo1)이 같은 부트 앱 구성을
+// 루트는 빌드 대상이 아니다. 세 모듈(route-start, callback-cgs, callback-colo)이 같은 부트 앱 구성을
 // 쓰므로 플러그인 버전과 공통 설정을 여기 한곳에 둔다. 모듈 build.gradle 에는 모듈 설명만 남긴다.
 plugins {
     id 'org.springframework.boot' version '3.3.5' apply false

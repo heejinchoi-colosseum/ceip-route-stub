@@ -10,15 +10,15 @@ Shopify OAuth authorization code 흐름을 검증하는 **임시 테스트 스�
 | 경로 | 파라미터 | 하는 일 | 모듈 |
 |---|---|---|---|
 | `GET /` | 없음 | 공용 연결 화면(테스트 하네스) | route-start(8080) |
-| `GET /connect` | 없음 | 소비 서비스 연결 화면 데모. sellerId, warehouseId, 만료형 체크 + 서비스 보유 값(channel, region, service, shop, returnTo)을 8080 `/start` 로 GET | route-callback(8081, cgs) · route-callback-colo1(8082, colo1.0) |
+| `GET /connect` | 없음 | 소비 서비스 연결 화면 데모. sellerId, warehouseId, 만료형 체크 + 서비스 보유 값(channel, region, service, shop, returnTo)을 8080 `/start` 로 GET | callback-cgs(8081, cgs) · callback-colo(8082, colo1.0) |
 | `GET /oauth/shopify/{plane}/start` | shop, channel, region, service, returnTo, sellerId, warehouseId, online, expiring | service 로 분기해 콜백 호스트를 고르고 서비스별 값을 state 에 실어 Shopify 동의 화면으로 302 | route-start(8080) |
 | `GET /oauth/shopify/{plane}/refresh` | shop, region, service, returnTo | online 그랜트 재실행 | route-start(8080) |
-| `GET /oauth/shopify/{plane}/callback` | code, hmac, state, shop | hmac, state 검증 후 토큰 교환, returnTo 로 302 | route-callback(8081) · route-callback-colo1(8082) |
-| `POST /oauth/shopify/{plane}/token/refresh` | result | 보관된 refresh_token 으로 `grant_type=refresh_token` 교환, 결과를 demo/return 으로 302 | route-callback(8081) · route-callback-colo1(8082) |
-| `GET /demo/return` | result(콜백이 붙임) | 원 서비스 복귀 데모 화면. result id 로 콜백이 보관한 토큰 응답을 표로 보임 | route-callback(8081) · route-callback-colo1(8082) |
+| `GET /oauth/shopify/{plane}/callback` | code, hmac, state, shop | hmac, state 검증 후 토큰 교환, returnTo 로 302 | callback-cgs(8081) · callback-colo(8082) |
+| `POST /oauth/shopify/{plane}/token/refresh` | result | 보관된 refresh_token 으로 `grant_type=refresh_token` 교환, 결과를 demo/return 으로 302 | callback-cgs(8081) · callback-colo(8082) |
+| `GET /demo/return` | result(콜백이 붙임) | 원 서비스 복귀 데모 화면. result id 로 콜백이 보관한 토큰 응답을 표로 보임 | callback-cgs(8081) · callback-colo(8082) |
 | `POST /webhooks/shopify/{plane}/{topic}` | service, region(구독 주소 쿼리) + Shopify 헤더/본문 | 라우터 릴레이. X-Shopify-Hmac-SHA256 검증 후 service 의 소비 서비스로 전달(라우터 서명 동봉). 개인정보 3종은 service 없이 `COMPLIANCE_SERVICE` 로 폴백. 실패 시 502 | route-start(8080) |
-| `POST /webhooks/shopify/{plane}/{topic}` | 라우터가 전달한 헤더/본문 | 소비 서비스 수신. X-Router-Hmac-SHA256 만 확인하고 메모리에 보관 | route-callback(8081) · route-callback-colo1(8082) |
-| `GET /demo/webhooks` | 없음 | 받은 웹훅을 최근 순으로 표시 | route-callback(8081) · route-callback-colo1(8082) |
+| `POST /webhooks/shopify/{plane}/{topic}` | 라우터가 전달한 헤더/본문 | 소비 서비스 수신. X-Router-Hmac-SHA256 만 확인하고 메모리에 보관 | callback-cgs(8081) · callback-colo(8082) |
+| `GET /demo/webhooks` | 없음 | 받은 웹훅을 최근 순으로 표시 | callback-cgs(8081) · callback-colo(8082) |
 
 토큰 종류는 셋이다. `expiring` 은 콜백까지 서명 state 에 실려 가고, 콜백이 토큰 교환 POST 본문에
 `expiring=1` 을 붙인다. Shopify 는 이 값이 없으면 비만료 offline 토큰을 준다. public 앱은 2027-01-01 부터
@@ -38,10 +38,10 @@ Shopify 앱의 App URL 호스트와 콜백(redirect_uri) 호스트를 **서로 �
 | | 모듈 | 포트 | 터널 | Shopify 필드 |
 |---|---|---|---|---|
 | start | route-start | 8080 | ngrok(고정 도메인) | App URL |
-| callback (cgs) | route-callback | 8081 | cloudflared(quick tunnel 1) | Allowed redirection URL(s) |
-| callback (colo1.0) | route-callback-colo1 | 8082 | cloudflared(quick tunnel 2) | Allowed redirection URL(s) |
+| callback (cgs) | callback-cgs | 8081 | cloudflared(quick tunnel 1) | Allowed redirection URL(s) |
+| callback (colo1.0) | callback-colo | 8082 | cloudflared(quick tunnel 2) | Allowed redirection URL(s) |
 
-start 는 `redirect_uri` 를 `CALLBACK_HOST`(cloudflared) 로 만들고, 콜백은 route-callback 이 8081 에서
+start 는 `redirect_uri` 를 `CALLBACK_HOST`(cloudflared) 로 만들고, 콜백은 callback-cgs 이 8081 에서
 받는다. route-start 모듈에도 자체 `/callback` 이 남아 있지만 이 흐름에서는 쓰이지 않는다.
 
 ## 소비 서비스 → start 로 값 넘기기 (/connect)
@@ -67,7 +67,7 @@ redirect_uri 를 만들지와, 서비스별로 실어 나를 값이다. 지금�
 
 서비스별 호스트를 다르게 주면 redirect_uri 가 서비스마다 달라진다. 쓰는 호스트의 `/oauth/shopify/default/callback` 은
 전부 Shopify Allowed redirection URL(s) 에 등록돼 있어야 한다(여러 개 등록 가능). colo1.0 은 별도 모듈
-route-callback-colo1(8082) 이 두 번째 cloudflared 호스트(`CALLBACK_HOST_COLO1`)로 받는다. 이 모듈은 route-callback 의
+callback-colo(8082) 이 두 번째 cloudflared 호스트(`CALLBACK_HOST_COLO1`)로 받는다. 이 모듈은 callback-cgs 의
 복제본이고 `/connect` 기본값(service=colo1.0, region=kr)만 다르다.
 
 ```
@@ -201,12 +201,12 @@ shop, region, service, state 에 실린 서비스별 값(sellerId, warehouseId),
 ## 모듈 구조
 
 세 모듈은 별도 부트 앱이다. 콜백 모듈은 route-start 와 격리하려고 코덱을 복제했고, 패키지를 달리 둔다
-(같은 FQCN 을 두 모듈에 두지 않는다). route-callback-colo1 은 route-callback 의 복제본으로 패키지만
+(같은 FQCN 을 두 모듈에 두지 않는다). callback-colo 은 callback-cgs 의 복제본으로 패키지만
 `callbackcolo1` 이다.
 
 ```
 ceip-route-stub/
-├── settings.gradle              # include 'route-start', 'route-callback', 'route-callback-colo1'
+├── settings.gradle              # include 'route-start', 'callback-cgs', 'callback-colo'
 ├── route-start/  (8080)         com.colosseum.routestub
 │   ├── RouteStubApplication
 │   ├── config/ShopifyProperties  # apiKey, apiSecret, appHost, callbackHost, scopes, returnAllowlist
@@ -216,7 +216,7 @@ ceip-route-stub/
 │       ├── WebhookRelayController  # X-Shopify-Hmac-SHA256 검증 후 소비 서비스로 전달
 │       ├── StateCodec
 │       └── HmacVerifier            # 콜백 hmac(hex) + 웹훅 hmac(base64)
-└── route-callback/  (8081)      com.colosseum.routestub.callback
+└── callback-cgs/  (8081)      com.colosseum.routestub.callback
     ├── CallbackStubApplication
     ├── config/ShopifyProperties  # apiKey, apiSecret, appHost(/connect 폼·웹훅 구독 주소), apiVersion, returnAllowlist
     ├── resources/templates/connect.html  # /connect 화면. {{startUrl}} 을 컨트롤러가 치환
@@ -227,8 +227,8 @@ ceip-route-stub/
         ├── CallbackController
         ├── StateCodec            # route-start 복제본
         └── HmacVerifier          # route-start 복제본
-└── route-callback-colo1/  (8082) com.colosseum.routestub.callbackcolo1
-    └── (route-callback 과 같은 구성. connect.html 기본값만 service=colo1.0, region=kr)
+└── callback-colo/  (8082) com.colosseum.routestub.callbackcolo1
+    └── (callback-cgs 과 같은 구성. connect.html 기본값만 service=colo1.0, region=kr)
 ```
 
 ## 준비물
@@ -279,12 +279,12 @@ source env.sh
 
 ```bash
 source env.sh
-./gradlew :route-callback:bootRun # 콜백 모듈(cgs), 8081
+./gradlew :callback-cgs:bootRun # 콜백 모듈(cgs), 8081
 ```
 
 ```bash
 source env.sh
-./gradlew :route-callback-colo1:bootRun # 콜백 모듈(colo1.0), 8082
+./gradlew :callback-colo:bootRun # 콜백 모듈(colo1.0), 8082
 ```
 
 포트가 겹치면 `lsof -ti:8080 | xargs kill`(8081, 8082 도 같은 식).
@@ -369,12 +369,12 @@ colo1.0: /cafe24/connect(8082) → start(8080) → Cafe24 동의 → 라우터 c
 
 | 경로 | 파라미터 | 하는 일 | 모듈 |
 |---|---|---|---|
-| `GET /cafe24/connect` | 없음. mallId 기본값은 `CAFE24_MALL_ID` | 소비 서비스 연결 화면 데모 | route-callback(8081) · route-callback-colo1(8082) |
+| `GET /cafe24/connect` | 없음. mallId 기본값은 `CAFE24_MALL_ID` | 소비 서비스 연결 화면 데모 | callback-cgs(8081) · callback-colo(8082) |
 | `GET /oauth/cafe24/{plane}/start` | mallId, channel, region, service, returnTo, sellerId, warehouseId | state 에 서비스 값과 redirect_uri(라우터 콜백)를 싣고 동의 화면으로 302 | route-start(8080) |
 | `GET /oauth/cafe24/{plane}/callback` | code, state (실패 시 error, error_description) | state 검증 후 service 의 콜백 호스트로 같은 쿼리를 붙여 302 | route-start(8080) |
-| `GET /oauth/cafe24/{plane}/callback` | 라우터가 넘긴 code, state | state 검증, 토큰 교환, returnTo 로 302 | route-callback(8081) · route-callback-colo1(8082) |
-| `POST /oauth/cafe24/{plane}/token/refresh` | result | refresh_token 으로 갱신 | route-callback(8081) · route-callback-colo1(8082) |
-| `GET /cafe24/demo/return` | result | 토큰 응답 표시 | route-callback(8081) · route-callback-colo1(8082) |
+| `GET /oauth/cafe24/{plane}/callback` | 라우터가 넘긴 code, state | state 검증, 토큰 교환, returnTo 로 302 | callback-cgs(8081) · callback-colo(8082) |
+| `POST /oauth/cafe24/{plane}/token/refresh` | result | refresh_token 으로 갱신 | callback-cgs(8081) · callback-colo(8082) |
+| `GET /cafe24/demo/return` | result | 토큰 응답 표시 | callback-cgs(8081) · callback-colo(8082) |
 
 Shopify 와 다른 점.
 

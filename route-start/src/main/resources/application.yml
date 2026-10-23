@@ -4,7 +4,7 @@ server:
 spring:
   config:
     # IDE 로 켜도 env.sh 와 같은 값을 읽도록 프로젝트 루트의 .env(gitignore) 를 가져온다.
-    # 모듈 작업 디렉터리(route-callback/)에서 켜면 ../.env 가 잡힌다. 환경변수가 있으면 그쪽이 우선한다.
+    # 모듈 작업 디렉터리(callback-cgs/)에서 켜면 ../.env 가 잡힌다. 환경변수가 있으면 그쪽이 우선한다.
     import: optional:file:./.env[.properties],optional:file:../.env[.properties]
   application:
     name: ceip-route-stub

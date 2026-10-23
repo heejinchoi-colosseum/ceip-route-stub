@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.colosseum.routestub.callbackcolo1.config.ShopifyProperties;
 
 /**
- * colo1.0 소비 서비스의 연결 화면을 흉내 내는 {@code /connect}. route-callback 의 복제본이고 템플릿 기본값(service=colo1.0,
+ * colo1.0 소비 서비스의 연결 화면을 흉내 내는 {@code /connect}. callback-cgs 의 복제본이고 템플릿 기본값(service=colo1.0,
  * region=kr)만 다르다. 소비 서비스 호스트(8082, 두 번째 cloudflared)에서 sellerId, warehouseId 를
  * 입력받고, 서비스가 이미 보유한 channel, region, service, shop, returnTo 와 함께 start 호스트(8080, ngrok)의
  * {@code /oauth/shopify/default/start} 로 GET 폼을 보낸다. start 호스트가 설정값이라 정적 파일 대신 여기서 치환해 내려준다.
