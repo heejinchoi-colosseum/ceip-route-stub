@@ -20,7 +20,7 @@ class WebhookRelayControllerTest {
             .getBytes(StandardCharsets.UTF_8);
 
     private final WebhookRelayController sut = new WebhookRelayController(new ShopifyProperties("key", SECRET,
-            "https://app.example.com", "https://callback.example.com", null, null, null, "cgs", "read_orders", ""));
+            "https://app.example.com", "https://callback.example.com", null, null, null, "cgs", "read_orders"));
 
     @Test
     void 웹훅_hmac은_본문_raw_bytes의_base64다() {

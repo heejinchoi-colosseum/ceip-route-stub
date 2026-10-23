@@ -3,12 +3,9 @@ package com.colosseum.routestub.shopify;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +15,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestClient;
 
 import com.colosseum.routestub.config.ShopifyProperties;
 
@@ -44,7 +40,6 @@ public class ShopifyOAuthController {
     private static final Pattern SHOP_DOMAIN = Pattern.compile("^[a-zA-Z0-9][a-zA-Z0-9-]*\\.myshopify\\.com$");
 
     private final ShopifyProperties properties;
-    private final RestClient restClient = RestClient.create();
 
     public ShopifyOAuthController(ShopifyProperties properties) {
         this.properties = properties;
@@ -152,14 +147,6 @@ public class ShopifyOAuthController {
             @RequestParam(required = false) String sellerId,
             @RequestParam(required = false) String warehouseId) {
         return start(plane, shop, "shopify", region, service, returnTo, sellerId, warehouseId, true, false);
-    }
-
-    private Set<String> allowlist() {
-        String raw = properties.returnAllowlist();
-        if (raw == null || raw.isBlank()) {
-            return Set.of();
-        }
-        return Arrays.stream(raw.split(",")).map(String::trim).filter(s -> !s.isEmpty()).collect(Collectors.toSet());
     }
 
     private static String encode(String value) {

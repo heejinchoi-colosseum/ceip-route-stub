@@ -21,7 +21,7 @@ class Cafe24WebhookRelayControllerTest {
         return new Cafe24WebhookRelayController(
                 new Cafe24Properties("cafe24-client", "cafe24-secret", "mall.read_store", webhookKey),
                 new ShopifyProperties("key", "shpss_secret", "https://app.example.com", "https://cb.example.com",
-                        null, null, null, "cgs", "read_orders", ""),
+                        null, null, null, "cgs", "read_orders"),
                 new Cafe24MallRegistry());
     }
 

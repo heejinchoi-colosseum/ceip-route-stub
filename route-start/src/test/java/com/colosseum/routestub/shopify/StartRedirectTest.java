@@ -23,7 +23,7 @@ class StartRedirectTest {
 
     /** 서비스별 콜백 호스트 없이 공통 콜백 호스트만 둔 설정. */
     private static ShopifyProperties properties() {
-        return new ShopifyProperties("key", "shpss_secret", APP_HOST, CALLBACK_HOST, null, null, null, "cgs", "read_orders", "");
+        return new ShopifyProperties("key", "shpss_secret", APP_HOST, CALLBACK_HOST, null, null, null, "cgs", "read_orders");
     }
 
     @Test
@@ -117,7 +117,7 @@ class StartRedirectTest {
     @Test
     void 서비스별_콜백_호스트가_있으면_그_service의_redirect_uri만_바뀐다() {
         ShopifyProperties properties = new ShopifyProperties("key", "shpss_secret",
-                APP_HOST, CALLBACK_HOST, CGS_HOST + "/", null, "", "cgs", "read_orders", "");
+                APP_HOST, CALLBACK_HOST, CGS_HOST + "/", null, "", "cgs", "read_orders");
         ShopifyOAuthController sut = new ShopifyOAuthController(properties);
 
         String cgs = redirectUri(sut.start("default", "test-ceip-store.myshopify.com", "shopify", "us", "cgs",

@@ -24,11 +24,11 @@ ceip-route-stub/
 ├── build.gradle                      # 플러그인 버전과 세 모듈 공통 설정(subprojects)
 ├── route-start/  (8080)              com.colosseum.routestub
 │   ├── RouteStubApplication
-│   ├── config/ShopifyProperties      # apiKey, apiSecret, appHost, callbackHost, scopes, returnAllowlist
+│   ├── config/ShopifyProperties      # apiKey, apiSecret, appHost, callbackHost(+Cgs, Colo1, ColoNova), complianceService, scopes
 │   ├── config/Cafe24Properties       # clientId, clientSecret, scopes, webhookKey
 │   ├── shopify/                      # start, refresh, 웹훅 릴레이
 │   │   ├── ShopifyOAuthController    # service switch 로 서비스별 값을 state 에 싣는다
-│   │   ├── ServiceRouting            # service → 소비 서비스 호스트 (redirect_uri, 웹훅 전달처)
+│   │   ├── ServiceRouting            # service → 소비 서비스 호스트 (redirect_uri, 웹훅 전달처). Cafe24 도 같이 쓴다
 │   │   ├── WebhookRelayController    # X-Shopify-Hmac-SHA256 검증 후 소비 서비스로 전달
 │   │   ├── StateCodec
 │   │   └── HmacVerifier              # 콜백 hmac(hex) + 웹훅 hmac(base64)
@@ -40,7 +40,7 @@ ceip-route-stub/
 ├── callback-cgs/  (8081)             com.colosseum.routestub.callbackcgs
 │   ├── CallbackStubApplication
 │   ├── config/ShopifyProperties      # apiKey, apiSecret, appHost(/connect 폼, 웹훅 구독 주소), apiVersion, returnAllowlist
-│   ├── config/Cafe24Properties
+│   ├── config/Cafe24Properties       # clientId, clientSecret, appHost(/cafe24/connect 폼), mallId, returnAllowlist
 │   ├── resources/templates/connect.html  # /connect 화면. {{startUrl}} 을 컨트롤러가 치환
 │   ├── resources/templates/cafe24-connect.html
 │   ├── shopify/                      # connect, callback, token/refresh, demo/return, 웹훅 수신
@@ -155,6 +155,7 @@ sequenceDiagram
 
 - JDK 21 (프로젝트 toolchain 을 21 로 고정)
 - Shopify 앱(`dev-ceip-app`)의 Client ID, Client secret
+- Cafe24 개발자센터 앱의 Client ID, Client Secret, WebHook 인증정보
 - ngrok 무료 고정 도메인(8080, App URL)
 - cloudflared(8081, 콜백), quick tunnel 은 계정 불필요
 - 테스트용 개발 스토어(`test-ceip-store.myshopify.com`)
@@ -173,13 +174,22 @@ export CALLBACK_HOST=https://beef-surge-concentrate-cdna.trycloudflare.com
 export CALLBACK_HOST_COLO1=https://troy-symphony-parameters-getting.trycloudflare.com
 # 선택: 절대 URL returnTo 를 허용할 호스트(콤마 구분). 상대 경로만 쓰면 불필요.
 export SHOPIFY_RETURN_ALLOWLIST=cgs.example.com,colo.example.com
+# 선택: 요청 scope(콤마 구분). 비우면 route-start 의 application.yml 기본값을 쓴다.
+# export SHOPIFY_SCOPES=<scope1,scope2,...>
 # 선택: 웹훅 구독에 쓰는 GraphQL Admin API 버전. 기본 2026-07.
 export SHOPIFY_API_VERSION=2026-07
 # 선택: 개인정보 웹훅 3종의 접수 담당 service(cgs, colo1.0, colo-nova). 기본 cgs.
 export COMPLIANCE_SERVICE=cgs
 ```
 
-Cafe24 env 는 `CAFE24_CLIENT_ID`, `CAFE24_CLIENT_SECRET`, `CAFE24_MALL_ID`, (선택) `CAFE24_SCOPES` 이고 세 앱 모두 같은 값을 읽는다.
+Cafe24 env 는 모듈마다 읽는 값이 다르다. `CAFE24_CLIENT_SECRET` 은 state 서명과 라우터 웹훅 서명에도 쓰므로 세 앱이 같은 값을 읽어야 한다.
+
+| 환경변수 | route-start | 콜백 모듈 |
+|---|---|---|
+| `CAFE24_CLIENT_ID`, `CAFE24_CLIENT_SECRET` | 읽음 | 읽음 |
+| `CAFE24_SCOPES` (선택) | 읽음 | - |
+| `CAFE24_WEBHOOK_KEY` | 읽음(웹훅 X-API-Key 비교) | - |
+| `CAFE24_MALL_ID` | - | 읽음(`/cafe24/connect` 기본 mallId) |
 
 IntelliJ 처럼 셸을 거치지 않고 켤 때를 위해 모듈은 프로젝트 루트의 `.env`(같은 키, `export` 없이 `KEY=value`)도 읽는다(`spring.config.import`). 환경변수가 있으면 환경변수가 우선한다. cloudflared 주소가 바뀌면 `env.sh` 와 `.env` 를 함께 고친다.
 
@@ -434,6 +444,9 @@ Shopify 와 같은 규약(`/oauth/cafe24/default/{action}`)으로 Cafe24 OAuth �
 | `POST /oauth/cafe24/{plane}/token/check` | result | 보관한 access_token 으로 `GET /api/v2/admin/store` 를 호출해 토큰 생존 확인(실험용) | callback-cgs(8081), callback-colo(8082) |
 | `POST /oauth/cafe24/{plane}/token/revoke` | result, hint(access_token 기본, refresh_token) | 보관한 토큰을 `POST /api/v2/oauth/revoke` 로 폐기(실험용) | callback-cgs(8081), callback-colo(8082) |
 | `GET /cafe24/demo/return` | result | 토큰 응답 표시 | callback-cgs(8081), callback-colo(8082) |
+| `POST /webhooks/cafe24/{plane}/{topic}` | Cafe24 헤더와 본문 | - 라우터 릴레이, X-API-Key 확인 후 몰을 연결한 서비스로 전달(라우터 서명 동봉)<br>- 실패 시 502 | route-start(8080) |
+| `POST /webhooks/cafe24/{plane}/{topic}` | 라우터가 전달한 헤더와 본문 | 소비 서비스 수신, X-Router-Hmac-SHA256 만 확인하고 메모리에 보관 | callback-cgs(8081), callback-colo(8082) |
+| `GET /cafe24/demo/webhooks` | 없음 | 받은 웹훅을 최근 순으로 표시 | callback-cgs(8081), callback-colo(8082) |
 
 ### Cafe24 개발자센터 앱 설정
 

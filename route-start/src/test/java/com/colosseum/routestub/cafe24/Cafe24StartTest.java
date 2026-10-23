@@ -27,7 +27,7 @@ class Cafe24StartTest {
     private final Cafe24OAuthController sut = new Cafe24OAuthController(
             new Cafe24Properties("cafe24-client", "cafe24-secret", "mall.read_order,mall.read_product", "hook-key"),
             new ShopifyProperties("key", "shpss_secret", "https://app.example.com", "https://callback.example.com",
-                    CGS_HOST, COLO1_HOST, null, "cgs", "read_orders", ""), new Cafe24MallRegistry());
+                    CGS_HOST, COLO1_HOST, null, "cgs", "read_orders"), new Cafe24MallRegistry());
 
     private static final String ROUTER_CALLBACK = "https://app.example.com/oauth/cafe24/default/callback";
 

@@ -30,8 +30,6 @@ shopify:
   # Dev Dashboard 의 Compliance webhooks 에 앱당 주소 하나만 두므로 쿼리에 service 를 실을 수 없다. 릴레이가 이 값으로 전달처를 고른다.
   compliance-service: ${COMPLIANCE_SERVICE:cgs}
   scopes: ${SHOPIFY_SCOPES:read_assigned_fulfillment_orders,read_fulfillments,read_merchant_managed_fulfillment_orders,read_orders,read_third_party_fulfillment_orders,write_assigned_fulfillment_orders,write_fulfillments,write_merchant_managed_fulfillment_orders,write_orders,write_third_party_fulfillment_orders,read_products,read_inventory,write_inventory,read_locations}
-  # 절대 URL returnTo 로 복귀를 허용할 호스트(콤마 구분). 상대 경로(/...)는 같은 호스트라 항상 허용.
-  return-allowlist: ${SHOPIFY_RETURN_ALLOWLIST:}
 
 # Cafe24 앱. Redirect URI(s) 에는 라우터 콜백 {app-host}/oauth/cafe24/default/callback 하나만 등록한다.
 # 라우터 콜백이 state 의 service 로 위 shopify.callback-host* 의 서비스 콜백에 넘긴다(같은 소비 서비스 앱, 같은 터널).

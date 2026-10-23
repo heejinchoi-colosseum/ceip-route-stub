@@ -18,11 +18,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  *                             이 세 topic 은 앱 설정에 주소가 하나뿐이라 구독 주소 쿼리에 service 를 실을 수 없어, 릴레이가
  *                             이 값으로 전달처를 고른다(앱별 공통 접수 담당). 기본 cgs.
  * @param scopes          콤마로 구분한 요청 스코프
- * @param returnAllowlist 절대 URL returnTo 로 복귀를 허용할 호스트 목록(콤마 구분). 상대 경로 returnTo 는
- *                        같은 호스트라 목록과 무관하게 허용한다. 오픈 리다이렉트를 막는다.
  */
 @ConfigurationProperties("shopify")
 public record ShopifyProperties(String apiKey, String apiSecret, String appHost, String callbackHost,
         String callbackHostCgs, String callbackHostColo1, String callbackHostColoNova, String complianceService,
-        String scopes, String returnAllowlist) {
+        String scopes) {
 }
