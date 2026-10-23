@@ -41,7 +41,7 @@ Shopify 앱의 App URL 호스트와 콜백(redirect_uri) 호스트를 **서로 �
 | callback (cgs) | callback-cgs | 8081 | cloudflared(quick tunnel 1) | Allowed redirection URL(s) |
 | callback (colo1.0) | callback-colo | 8082 | cloudflared(quick tunnel 2) | Allowed redirection URL(s) |
 
-start 는 `redirect_uri` 를 `CALLBACK_HOST`(cloudflared) 로 만들고, 콜백은 callback-cgs 이 8081 에서
+start 는 `redirect_uri` 를 `CALLBACK_HOST`(cloudflared) 로 만들고, 콜백은 callback-cgs 가 8081 에서
 받는다. route-start 모듈에도 자체 `/callback` 이 남아 있지만 이 흐름에서는 쓰이지 않는다.
 
 ## 소비 서비스 → start 로 값 넘기기 (/connect)
@@ -67,7 +67,7 @@ redirect_uri 를 만들지와, 서비스별로 실어 나를 값이다. 지금�
 
 서비스별 호스트를 다르게 주면 redirect_uri 가 서비스마다 달라진다. 쓰는 호스트의 `/oauth/shopify/default/callback` 은
 전부 Shopify Allowed redirection URL(s) 에 등록돼 있어야 한다(여러 개 등록 가능). colo1.0 은 별도 모듈
-callback-colo(8082) 이 두 번째 cloudflared 호스트(`CALLBACK_HOST_COLO1`)로 받는다. 이 모듈은 callback-cgs 의
+callback-colo(8082) 가 두 번째 cloudflared 호스트(`CALLBACK_HOST_COLO1`)로 받는다. 이 모듈은 callback-cgs 의
 복제본이고 `/connect` 기본값(service=colo1.0, region=kr)만 다르다.
 
 ```
@@ -201,8 +201,8 @@ shop, region, service, state 에 실린 서비스별 값(sellerId, warehouseId),
 ## 모듈 구조
 
 세 모듈은 별도 부트 앱이다. 콜백 모듈은 route-start 와 격리하려고 코덱을 복제했고, 패키지를 달리 둔다
-(같은 FQCN 을 두 모듈에 두지 않는다). callback-colo 은 callback-cgs 의 복제본으로 패키지만
-`callbackcolo1` 이다.
+(같은 FQCN 을 두 모듈에 두지 않는다). callback-colo 는 callback-cgs 의 복제본으로 패키지만
+`callbackcolo` 이다.
 
 ```
 ceip-route-stub/
@@ -216,7 +216,7 @@ ceip-route-stub/
 │       ├── WebhookRelayController  # X-Shopify-Hmac-SHA256 검증 후 소비 서비스로 전달
 │       ├── StateCodec
 │       └── HmacVerifier            # 콜백 hmac(hex) + 웹훅 hmac(base64)
-└── callback-cgs/  (8081)      com.colosseum.routestub.callback
+└── callback-cgs/  (8081)      com.colosseum.routestub.callbackcgs
     ├── CallbackStubApplication
     ├── config/ShopifyProperties  # apiKey, apiSecret, appHost(/connect 폼·웹훅 구독 주소), apiVersion, returnAllowlist
     ├── resources/templates/connect.html  # /connect 화면. {{startUrl}} 을 컨트롤러가 치환
@@ -227,7 +227,7 @@ ceip-route-stub/
         ├── CallbackController
         ├── StateCodec            # route-start 복제본
         └── HmacVerifier          # route-start 복제본
-└── callback-colo/  (8082) com.colosseum.routestub.callbackcolo1
+└── callback-colo/  (8082) com.colosseum.routestub.callbackcolo
     └── (callback-cgs 과 같은 구성. connect.html 기본값만 service=colo1.0, region=kr)
 ```
 
