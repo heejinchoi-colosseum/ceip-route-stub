@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
-/** 콜백 쿼리 파라미터의 hmac 검증. 루트 모듈 {@code com.colosseum.routestub.shopify.HmacVerifier} 의 복제본이다. */
+/** 콜백 쿼리 파라미터의 hmac 검증. route-start 모듈 {@code com.colosseum.routestub.shopify.HmacVerifier} 의 복제본이다. */
 final class HmacVerifier {
 
     private HmacVerifier() {

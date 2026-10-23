@@ -3,7 +3,7 @@ package com.colosseum.routestub.callbackcolo1.config;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * 콜백 모듈용 Cafe24 설정. 루트 모듈 설정에서 콜백이 쓰는 값만 남기고, /cafe24/connect 화면에 쓰는 값을 더했다.
+ * 콜백 모듈용 Cafe24 설정. route-start 모듈 설정에서 콜백이 쓰는 값만 남기고, /cafe24/connect 화면에 쓰는 값을 더했다.
  *
  * @param clientId        Client ID (토큰 교환 Basic 인증에 쓴다)
  * @param clientSecret    Client Secret (state 복원, 토큰 교환에 쓴다). start 와 같은 값이어야 한다.

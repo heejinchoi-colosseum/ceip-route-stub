@@ -1,5 +1,5 @@
 // 콜백 전용 모듈. Shopify redirect_uri 를 8081(cloudflared)에서 받아 App URL(ngrok)과 다른
-// 호스트로도 인증이 성립하는지 검증한다. 코덱은 루트 모듈과 격리해 복제한다(패키지는 다름).
+// 호스트로도 인증이 성립하는지 검증한다. 코덱은 route-start 모듈과 격리해 복제한다(패키지는 다름).
 plugins {
     // 버전은 루트 build.gradle 의 plugins 블록이 이미 클래스패스에 올려서, 여기선 id 만 적는다.
     id 'java'

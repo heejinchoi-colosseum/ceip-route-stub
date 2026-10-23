@@ -1,3 +1,4 @@
 rootProject.name = 'ceip-route-stub'
+include 'route-start'
 include 'route-callback'
 include 'route-callback-colo1'

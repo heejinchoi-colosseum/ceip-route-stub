@@ -15,7 +15,7 @@ import javax.crypto.spec.SecretKeySpec;
 import org.springframework.web.util.UriUtils;
 
 /**
- * Cafe24 OAuth state 를 서명해 담고 되읽는다. 루트 모듈 {@code Cafe24StateCodec} 의 복제본이다(패키지만 다름).
+ * Cafe24 OAuth state 를 서명해 담고 되읽는다. route-start 모듈 {@code Cafe24StateCodec} 의 복제본이다(패키지만 다름).
  * Shopify {@code StateCodec} 과 같은 형식({@code base64url(payload)."hmacHex}, 키는 Cafe24 client secret)이고 필드만 다르다.
  *
  * <p>Cafe24 는 Shopify 와 달리 콜백에 hmac 을 붙이지 않는다. 그래서 위변조 확인은 이 서명 state 가 전부다.

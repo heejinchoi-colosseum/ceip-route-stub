@@ -29,7 +29,7 @@ import org.springframework.web.client.RestClientResponseException;
 import com.colosseum.routestub.callback.config.ShopifyProperties;
 
 /**
- * Shopify 콜백만 처리하는 스텁 컨트롤러. 루트 모듈 {@code ShopifyOAuthController} 의 callback, demo/return 을
+ * Shopify 콜백만 처리하는 스텁 컨트롤러. route-start 모듈 {@code ShopifyOAuthController} 의 callback, demo/return 을
  * 복제했다. start, refresh 는 여기 없다(8080 이 담당). 콜백은 start 와 다른 호스트(cloudflared)에서 뜬다.
  *
  * <p>hmac 과 서명 state 를 검증하고 code 를 토큰으로 교환한 뒤, returnTo 가 있으면 그리로 302 한다.

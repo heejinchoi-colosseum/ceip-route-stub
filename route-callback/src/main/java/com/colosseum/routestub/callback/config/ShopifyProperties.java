@@ -3,7 +3,7 @@ package com.colosseum.routestub.callback.config;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * 콜백 모듈용 Shopify 설정. 루트 모듈 설정의 복제본이되, 콜백이 실제로 쓰는 값만 남겼다.
+ * 콜백 모듈용 Shopify 설정. route-start 모듈 설정의 복제본이되, 콜백이 실제로 쓰는 값만 남겼다.
  * start 를 담당하지 않으므로 appHost, callbackHost, scopes 는 두지 않는다.
  *
  * @param apiKey          Client ID (토큰 교환에 쓴다)

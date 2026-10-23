@@ -11,7 +11,7 @@ import java.util.UUID;
 import org.springframework.web.util.UriUtils;
 
 /**
- * OAuth state 를 서명해 담고 되읽는다. 루트 모듈 {@code com.colosseum.routestub.shopify.StateCodec} 의 복제본이다.
+ * OAuth state 를 서명해 담고 되읽는다. route-start 모듈 {@code com.colosseum.routestub.shopify.StateCodec} 의 복제본이다.
  * 콜백 모듈을 격리하려고 복제했고, 형식과 서명 방식은 start 와 정확히 같아야 왕복이 성립한다.
  *
  * <p>형식은 {@code base64url(payload)."hmacHex} 이고 payload 는 {@code key=value&...} 쿼리 문자열이다.
