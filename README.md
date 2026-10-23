@@ -26,7 +26,7 @@ ceip-route-stub/
 │   ├── RouteStubApplication
 │   ├── config/ShopifyProperties      # apiKey, apiSecret, appHost, callbackHost, scopes, returnAllowlist
 │   ├── config/Cafe24Properties       # clientId, clientSecret, scopes, webhookKey
-│   ├── shopify/                      # start, refresh, demo/return, 웹훅 릴레이
+│   ├── shopify/                      # start, refresh, 웹훅 릴레이
 │   │   ├── ShopifyOAuthController    # service switch 로 서비스별 값을 state 에 싣는다
 │   │   ├── ServiceRouting            # service → 소비 서비스 호스트 (redirect_uri, 웹훅 전달처)
 │   │   ├── WebhookRelayController    # X-Shopify-Hmac-SHA256 검증 후 소비 서비스로 전달
@@ -431,6 +431,8 @@ Shopify 와 같은 규약(`/oauth/cafe24/default/{action}`)으로 Cafe24 OAuth �
 | `GET /oauth/cafe24/{plane}/callback` | code, state (실패 시 error, error_description) | state 검증 후 service 의 콜백 호스트로 같은 쿼리를 붙여 302 | route-start(8080) |
 | `GET /oauth/cafe24/{plane}/callback` | 라우터가 넘긴 code, state | state 검증, 토큰 교환, returnTo 로 302 | callback-cgs(8081), callback-colo(8082) |
 | `POST /oauth/cafe24/{plane}/token/refresh` | result | refresh_token 으로 갱신 | callback-cgs(8081), callback-colo(8082) |
+| `POST /oauth/cafe24/{plane}/token/check` | result | 보관한 access_token 으로 `GET /api/v2/admin/store` 를 호출해 토큰 생존 확인(실험용) | callback-cgs(8081), callback-colo(8082) |
+| `POST /oauth/cafe24/{plane}/token/revoke` | result, hint(access_token 기본, refresh_token) | 보관한 토큰을 `POST /api/v2/oauth/revoke` 로 폐기(실험용) | callback-cgs(8081), callback-colo(8082) |
 | `GET /cafe24/demo/return` | result | 토큰 응답 표시 | callback-cgs(8081), callback-colo(8082) |
 
 ### Cafe24 개발자센터 앱 설정

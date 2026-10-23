@@ -13,7 +13,6 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -155,21 +154,6 @@ public class ShopifyOAuthController {
         return start(plane, shop, "shopify", region, service, returnTo, sellerId, warehouseId, true, false);
     }
 
-    /** 원 서비스 복귀 데모 화면. 정식에서는 각 소비 서비스의 완료 화면이 이 자리를 대신한다. */
-    @GetMapping("/demo/return")
-    public ResponseEntity<String> demoReturn(@RequestParam Map<String, String> params) {
-        String rows = params.entrySet().stream()
-                .map(e -> "<tr><td>" + escape(e.getKey()) + "</td><td><code>" + escape(e.getValue()) + "</code></td></tr>")
-                .collect(Collectors.joining());
-        return html(HttpStatus.OK, """
-                <!doctype html><meta charset="utf-8">
-                <h2>원 서비스 복귀 (데모)</h2>
-                <p>라우터가 인증을 마치고 이 화면으로 302 했다. 액세스 토큰은 URL 이 아니라 라우터 로그에 있다.</p>
-                <table border="1" cellpadding="6" cellspacing="0">%s</table>
-                <p><a href="/">← 연결 화면으로</a></p>
-                """.formatted(rows));
-    }
-
     private Set<String> allowlist() {
         String raw = properties.returnAllowlist();
         if (raw == null || raw.isBlank()) {
@@ -178,15 +162,7 @@ public class ShopifyOAuthController {
         return Arrays.stream(raw.split(",")).map(String::trim).filter(s -> !s.isEmpty()).collect(Collectors.toSet());
     }
 
-    private static ResponseEntity<String> html(HttpStatus status, String body) {
-        return ResponseEntity.status(status).contentType(MediaType.TEXT_HTML).body(body);
-    }
-
     private static String encode(String value) {
         return URLEncoder.encode(value == null ? "" : value, StandardCharsets.UTF_8);
-    }
-
-    private static String escape(String value) {
-        return value.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
     }
 }
