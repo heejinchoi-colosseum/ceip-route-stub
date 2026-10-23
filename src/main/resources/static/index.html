@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shopping Mall Linkage Control (공용)</title>
+  <style>
+    :root { --line:#d9d9d9; --head:#1f2430; --accent:#111; --muted:#6b7280; }
+    * { box-sizing: border-box; }
+    body { margin:0; background:#f3f4f6; color:#111;
+           font-family: -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif; }
+    .wrap { max-width: 720px; margin: 24px auto; padding: 0 16px; }
+    .card { background:#fff; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+    .card > h2 { margin:0; background:var(--head); color:#fff; font-size:15px; padding:12px 16px; }
+    .body { padding:16px; }
+    .section-title { font-weight:700; margin:18px 0 8px; font-size:13px; color:#374151;
+                     border-bottom:1px solid var(--line); padding-bottom:6px; }
+    .row { display:flex; align-items:center; gap:12px; padding:7px 0; }
+    .row label { flex:0 0 200px; font-size:13px; color:#374151; }
+    .row .req { color:#c0392b; }
+    .row .field { flex:1; min-width:0; }
+    input[type=text], input[type=number], select {
+      width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px; background:#fff; }
+    input[type=checkbox] { width:18px; height:18px; accent-color:#16a34a; }
+    .hint { font-size:12px; color:var(--muted); margin:2px 0 0; }
+    .actions { display:flex; justify-content:flex-end; gap:8px; margin-top:20px;
+               border-top:1px solid var(--line); padding-top:14px; }
+    button { background:var(--accent); color:#fff; border:0; border-radius:6px;
+             padding:10px 22px; font-size:13px; font-weight:700; cursor:pointer; }
+    .note { font-size:12px; color:var(--muted); margin:10px 16px 0; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h2>Shopping Mall Linkage Control — 공용 연결</h2>
+      <div class="body">
+        <!-- 라우트 서비스 규약: /oauth/{channel}/{plane}/start. Shopify 는 plane=default.
+             region·service 는 어느 리전·소비 서비스가 시작했는지 나르는 부가 값. -->
+        <form method="get" action="/oauth/shopify/default/start">
+
+          <div class="section-title">연결 대상</div>
+
+          <div class="row">
+            <label>Channel<span class="req"> *</span></label>
+            <div class="field">
+              <select name="channel">
+                <option value="shopify" selected>Shopify</option>
+                <option value="tiktok" disabled>TikTok Shop (준비 중)</option>
+                <option value="qoo10" disabled>Qoo10 (준비 중)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row">
+            <label>Region<span class="req"> *</span></label>
+            <div class="field">
+              <select name="region">
+                <option value="default" selected>default</option>
+                <option value="us">US</option>
+                <option value="kr">KR</option>
+                <option value="sg">SG</option>
+                <option value="jp">JP</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row">
+            <label>Service<span class="req"> *</span></label>
+            <div class="field">
+              <select name="service">
+                <option value="cgs" selected>CGS (해외)</option>
+                <option value="colo1.0">Colo1.0 (국내)</option>
+                <option value="colo-nova">Colo-Nova (SaaS)</option>
+              </select>
+              <p class="hint">실제로는 각 서비스가 로그인 후 자기 region·service 를 보유·전달한다.
+                라우터는 이 값을 <b>서명한 state</b> 에 실어 콜백까지 왕복시킨다. 여기 선택은 호출 서비스 시뮬레이션용.</p>
+            </div>
+          </div>
+
+          <div class="row">
+            <label>Shop Name<span class="req"> *</span></label>
+            <div class="field">
+              <input type="text" name="shop" required value="test-ceip-store.myshopify.com" placeholder="test-ceip-store.myshopify.com">
+            </div>
+          </div>
+
+          <div class="row">
+            <label>Return URL</label>
+            <div class="field">
+              <input type="text" name="returnTo" value="/demo/return">
+              <p class="hint">인증 성공 후 돌려보낼 원 서비스 URL. 상대 경로(/...)는 같은 호스트라 허용,
+                절대 URL 은 return-allowlist 호스트만 허용. 비우면 결과 화면을 그대로 보인다.</p>
+            </div>
+          </div>
+
+          <div class="row">
+            <label>만료형 Offline 토큰 (refresh_token)</label>
+            <div class="field">
+              <input type="checkbox" name="expiring" value="true">
+              <p class="hint">체크 시 콜백이 토큰 교환에 expiring=1 을 붙여 만료형 offline 토큰
+                (expires_in 3600, refresh_token 90일) 발급. 미체크면 비만료 offline(refresh_token 없음).</p>
+            </div>
+          </div>
+
+          <div class="row">
+            <label>Online 토큰 (사용자 세션형)</label>
+            <div class="field">
+              <input type="checkbox" name="online" value="true">
+              <p class="hint">체크 시 grant_options[]=per-user 로 online 토큰(약 24h 만료, associated_user 포함) 발급.
+                online 토큰에는 refresh_token 이 없다. 함께 체크하면 위 만료형 Offline 은 무시된다.</p>
+            </div>
+          </div>
+
+          <div class="section-title">동기화 설정 (소비 서비스 소유 · 데모 표시)</div>
+
+          <div class="row">
+            <label>Account</label>
+            <div class="field"><input type="text" name="account"></div>
+          </div>
+          <div class="row">
+            <label>Seller Id</label>
+            <div class="field">
+              <input type="text" name="sellerId">
+              <p class="hint">sellerId, warehouseId 는 start 가 service 별로 조합해 서명 state 에 싣고, 콜백이 복귀 URL 에 붙인다.</p>
+            </div>
+          </div>
+          <div class="row">
+            <label>Warehouse Id</label>
+            <div class="field"><input type="text" name="warehouseId"></div>
+          </div>
+          <div class="row">
+            <label>Location Name</label>
+            <div class="field"><input type="text" name="locationName"></div>
+          </div>
+          <div class="row">
+            <label>Shipper</label>
+            <div class="field">
+              <select name="shipper">
+                <option value="">Select</option>
+                <option value="dhl">DHL</option>
+                <option value="fedex">FedEx</option>
+                <option value="ups">UPS</option>
+              </select>
+            </div>
+          </div>
+          <div class="row">
+            <label>Number of previous days</label>
+            <div class="field"><input type="number" name="previousDays" min="0" placeholder="1"></div>
+          </div>
+          <div class="row">
+            <label>Enable Bundles</label>
+            <div class="field"><input type="checkbox" name="enableBundles" value="true"></div>
+          </div>
+          <div class="row">
+            <label>OVERRIDE_TRACKING_CARRIER_KV</label>
+            <div class="field"><input type="text" name="overrideTrackingCarrierKv" placeholder="Please enter"></div>
+          </div>
+          <div class="row">
+            <label>OVERRIDE_TRACKING_URL_KV</label>
+            <div class="field"><input type="text" name="overrideTrackingUrlKv" placeholder="Please enter"></div>
+          </div>
+          <div class="row">
+            <label>Product Sync</label>
+            <div class="field"><input type="checkbox" name="productSync" value="true" checked></div>
+          </div>
+          <div class="row">
+            <label>Fulfillments Sync</label>
+            <div class="field"><input type="checkbox" name="fulfillmentsSync" value="true" checked></div>
+          </div>
+          <div class="row">
+            <label>Inventory Sync</label>
+            <div class="field"><input type="checkbox" name="inventorySync" value="true" checked></div>
+          </div>
+
+          <div class="actions">
+            <button type="submit">AUTHORIZE</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <p class="note">
+      스텁은 인증(shop·region·service)만 처리한다. 동기화 설정 값은 정식 라우트 설계상
+      소비 서비스가 소유하므로 여기서는 화면 구성용으로만 둔다.
+    </p>
+  </div>
+</body>
+</html>

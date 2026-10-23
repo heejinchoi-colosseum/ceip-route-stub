@@ -1,0 +1,37 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "17aee1362696a2158c6424f59a82324c"
+application_url = "https://cassette-blouse-tricolor.ngrok-free.dev"
+embedded = false
+name = "dev-ceip-app"
+
+[webhooks]
+api_version = "2026-07"
+
+# 개인정보 웹훅 3종은 Dev Dashboard 화면이 없어 여기서만 구독한다. 주소는 라우터(8080, ngrok) 릴레이이고,
+# 릴레이가 X-Shopify-Topic 으로 topic 을 판단해 COMPLIANCE_SERVICE(기본 cgs) 호스트로 전달한다.
+# app/uninstalled 는 여기 넣지 않는다. 콜백이 설치 직후 Admin API 로 shop 별 구독(service 쿼리 포함)을 만든다.
+[[webhooks.subscriptions]]
+compliance_topics = [ "customers/data_request" ]
+uri = "https://cassette-blouse-tricolor.ngrok-free.dev/webhooks/shopify/default/customers-data_request"
+
+[[webhooks.subscriptions]]
+compliance_topics = [ "customers/redact" ]
+uri = "https://cassette-blouse-tricolor.ngrok-free.dev/webhooks/shopify/default/customers-redact"
+
+[[webhooks.subscriptions]]
+compliance_topics = [ "shop/redact" ]
+uri = "https://cassette-blouse-tricolor.ngrok-free.dev/webhooks/shopify/default/shop-redact"
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "read_assigned_fulfillment_orders,read_fulfillments,read_merchant_managed_fulfillment_orders,read_orders,read_third_party_fulfillment_orders,write_assigned_fulfillment_orders,write_fulfillments,write_merchant_managed_fulfillment_orders,write_orders,write_third_party_fulfillment_orders,read_products,read_inventory,write_inventory,read_locations"
+optional_scopes = [ ]
+use_legacy_install_flow = true
+
+[auth]
+# OAuth redirect_uri 만 둔다. 웹훅 주소는 등록 목록 검사가 없어 여기 넣을 필요가 없다.
+redirect_urls = [
+  "https://beef-surge-concentrate-cdna.trycloudflare.com/oauth/shopify/default/callback",
+  "https://troy-symphony-parameters-getting.trycloudflare.com/oauth/shopify/default/callback"
+]

@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cafe24 연결 (Colo1.0 데모)</title>
+  <style>
+    :root { --line:#d9d9d9; --head:#1f2430; --accent:#111; --muted:#6b7280; }
+    * { box-sizing: border-box; }
+    body { margin:0; background:#f3f4f6; color:#111;
+           font-family: -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif; }
+    .wrap { max-width: 720px; margin: 24px auto; padding: 0 16px; }
+    .card { background:#fff; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+    .card > h2 { margin:0; background:var(--head); color:#fff; font-size:15px; padding:12px 16px; }
+    .body { padding:16px; }
+    .section-title { font-weight:700; margin:18px 0 8px; font-size:13px; color:#374151;
+                     border-bottom:1px solid var(--line); padding-bottom:6px; }
+    .row { display:flex; align-items:center; gap:12px; padding:7px 0; }
+    .row label { flex:0 0 200px; font-size:13px; color:#374151; }
+    .row .req { color:#c0392b; }
+    .row .field { flex:1; min-width:0; }
+    input[type=text] {
+      width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px; background:#fff; }
+    input[readonly] { background:#f9fafb; color:#4b5563; }
+    input[type=checkbox] { width:18px; height:18px; accent-color:#16a34a; }
+    .hint { font-size:12px; color:var(--muted); margin:2px 0 0; }
+    .actions { display:flex; justify-content:flex-end; gap:8px; margin-top:20px;
+               border-top:1px solid var(--line); padding-top:14px; }
+    button { background:var(--accent); color:#fff; border:0; border-radius:6px;
+             padding:10px 22px; font-size:13px; font-weight:700; cursor:pointer; }
+    .note { font-size:12px; color:var(--muted); margin:10px 16px 0; }
+    code { font-size:12px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h2>Cafe24 연결 — Colo1.0 (콜백 호스트 8082)</h2>
+      <div class="body">
+        <!-- Cafe24 판. colo1.0 소비 서비스 호스트(8082)에서 sellerId, warehouseId 를 입력받아 start 호스트(8080)의 /oauth/cafe24/default/start 로 GET 한다.
+             start 는 service=colo1.0 이면 CALLBACK_HOST_COLO1(이 호스트)로 redirect_uri 를 만든다.
+             channel, region, service, shop, returnTo 는 서비스가 보유한 값이라 사용자 입력 없이 함께 보낸다(readonly).
+             start 는 이 값들을 서명 state 에 실어 Shopify 동의 화면으로 302 하고, 콜백은 다시 이 호스트로 온다. -->
+        <form method="get" action="{{startUrl}}">
+
+          <div class="section-title">사용자 입력</div>
+
+          <div class="row">
+            <label for="sellerId">Seller Id<span class="req"> *</span></label>
+            <div class="field">
+              <input type="text" id="sellerId" name="sellerId" required placeholder="seller-001">
+            </div>
+          </div>
+
+          <div class="row">
+            <label for="warehouseId">Warehouse Id<span class="req"> *</span></label>
+            <div class="field">
+              <input type="text" id="warehouseId" name="warehouseId" required placeholder="wh-001">
+            </div>
+          </div>
+
+
+          <div class="section-title">서비스 보유 값 (사용자 입력 없음 · 함께 전송)</div>
+
+          <div class="row">
+            <label>Channel</label>
+            <div class="field"><input type="text" name="channel" value="cafe24" readonly></div>
+          </div>
+          <div class="row">
+            <label>Region</label>
+            <div class="field"><input type="text" name="region" value="kr" readonly></div>
+          </div>
+          <div class="row">
+            <label>Service</label>
+            <div class="field">
+              <input type="text" name="service" value="colo1.0" readonly>
+              <p class="hint">start 는 service=colo1.0 으로 분기해 이 호스트(CALLBACK_HOST_COLO1)를 redirect_uri 로 고르고, 실어 나를 값을 조합한다.</p>
+            </div>
+          </div>
+          <div class="row">
+            <label>Mall ID</label>
+            <div class="field">
+              <input type="text" name="mallId" value="{{mallId}}" required placeholder="coloceip">
+              <p class="hint">Cafe24 쇼핑몰 ID. 동의 화면이 https://{mallId}.cafe24api.com 에 뜬다. 기본값은 CAFE24_MALL_ID 이고, 테스트 중에는 바꿔 넣을 수 있다. URL 이 아니라 ID 만 넣는다(예: coloceip).</p>
+            </div>
+          </div>
+          <div class="row">
+            <label>Return URL</label>
+            <div class="field">
+              <input type="text" name="returnTo" value="/cafe24/demo/return" readonly>
+              <p class="hint">콜백이 토큰 교환 뒤 302 할 곳. 상대 경로라 콜백 호스트(이 호스트)의 /cafe24/demo/return 으로 온다.</p>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button type="submit">AUTHORIZE</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <p class="note">
+      AUTHORIZE 를 누르면 <code>{{startUrl}}</code> 로 GET 한다. sellerId, warehouseId 는 redirect_uri 가 아니라
+      서명 state 에 실려 콜백으로 돌아오고, /cafe24/demo/return 쿼리에 그대로 붙는다. Cafe24 는 콜백에 hmac 이 없어 이 서명 state 로만 검증한다. Cafe24 는 라우터 콜백(8080)으로 code 를 보내고, 라우터가 state 의 service 로 이 호스트 콜백에 넘긴다.
+    </p>
+  </div>
+</body>
+</html>

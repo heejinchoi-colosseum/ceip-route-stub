@@ -1,0 +1,35 @@
+server:
+  port: 8081
+
+spring:
+  config:
+    # IDE 로 켜도 env.sh 와 같은 값을 읽도록 프로젝트 루트의 .env(gitignore) 를 가져온다.
+    # 모듈 작업 디렉터리(route-callback/)에서 켜면 ../.env 가 잡힌다. 환경변수가 있으면 그쪽이 우선한다.
+    import: optional:file:./.env[.properties],optional:file:../.env[.properties]
+  application:
+    name: ceip-route-stub-callback
+
+shopify:
+  # start(8080)와 반드시 같은 값이어야 한다. state 서명과 hmac 이 두 호스트에 걸쳐 맞물린다.
+  api-key: ${SHOPIFY_API_KEY:}
+  api-secret: ${SHOPIFY_API_SECRET:}
+  # start(8080, ngrok) 호스트. /connect 화면의 AUTHORIZE 폼이 이 호스트의 /oauth/shopify/default/start 로 간다.
+  app-host: ${APP_HOST:http://localhost:8080}
+  # 웹훅 구독(webhookSubscriptionCreate)에 쓰는 GraphQL Admin API 버전. 분기별 릴리스, 12개월 지원.
+  api-version: ${SHOPIFY_API_VERSION:2026-07}
+  # 절대 URL returnTo 로 복귀를 허용할 호스트(콤마 구분). 상대 경로(/...)는 같은 호스트라 항상 허용.
+  return-allowlist: ${SHOPIFY_RETURN_ALLOWLIST:}
+
+# Cafe24 앱. start(8080)와 같은 client-secret 이어야 state 가 맞물린다.
+cafe24:
+  client-id: ${CAFE24_CLIENT_ID:}
+  client-secret: ${CAFE24_CLIENT_SECRET:}
+  # start(8080, ngrok) 호스트. /cafe24/connect 폼이 이 호스트의 /oauth/cafe24/default/start 로 간다.
+  app-host: ${APP_HOST:http://localhost:8080}
+  # /cafe24/connect 화면의 서비스 보유 값 mallId(테스트 쇼핑몰 ID).
+  mall-id: ${CAFE24_MALL_ID:}
+  return-allowlist: ${SHOPIFY_RETURN_ALLOWLIST:}
+
+logging:
+  level:
+    com.colosseum.routestub: DEBUG

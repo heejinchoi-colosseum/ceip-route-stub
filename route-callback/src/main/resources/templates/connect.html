@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shopify 연결 (소비 서비스 데모)</title>
+  <style>
+    :root { --line:#d9d9d9; --head:#1f2430; --accent:#111; --muted:#6b7280; }
+    * { box-sizing: border-box; }
+    body { margin:0; background:#f3f4f6; color:#111;
+           font-family: -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif; }
+    .wrap { max-width: 720px; margin: 24px auto; padding: 0 16px; }
+    .card { background:#fff; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+    .card > h2 { margin:0; background:var(--head); color:#fff; font-size:15px; padding:12px 16px; }
+    .body { padding:16px; }
+    .section-title { font-weight:700; margin:18px 0 8px; font-size:13px; color:#374151;
+                     border-bottom:1px solid var(--line); padding-bottom:6px; }
+    .row { display:flex; align-items:center; gap:12px; padding:7px 0; }
+    .row label { flex:0 0 200px; font-size:13px; color:#374151; }
+    .row .req { color:#c0392b; }
+    .row .field { flex:1; min-width:0; }
+    input[type=text] {
+      width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px; background:#fff; }
+    input[readonly] { background:#f9fafb; color:#4b5563; }
+    input[type=checkbox] { width:18px; height:18px; accent-color:#16a34a; }
+    .hint { font-size:12px; color:var(--muted); margin:2px 0 0; }
+    .actions { display:flex; justify-content:flex-end; gap:8px; margin-top:20px;
+               border-top:1px solid var(--line); padding-top:14px; }
+    button { background:var(--accent); color:#fff; border:0; border-radius:6px;
+             padding:10px 22px; font-size:13px; font-weight:700; cursor:pointer; }
+    .note { font-size:12px; color:var(--muted); margin:10px 16px 0; }
+    code { font-size:12px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h2>Shopify 연결 — CGS (콜백 호스트 8081)</h2>
+      <div class="body">
+        <!-- 소비 서비스 호스트(8081)에서 sellerId, warehouseId 를 입력받아 start 호스트(8080)의 /start 로 GET 한다.
+             channel, region, service, shop, returnTo 는 서비스가 보유한 값이라 사용자 입력 없이 함께 보낸다(readonly).
+             start 는 이 값들을 서명 state 에 실어 Shopify 동의 화면으로 302 하고, 콜백은 다시 이 호스트로 온다. -->
+        <form method="get" action="{{startUrl}}">
+
+          <div class="section-title">사용자 입력</div>
+
+          <div class="row">
+            <label for="sellerId">Seller Id<span class="req"> *</span></label>
+            <div class="field">
+              <input type="text" id="sellerId" name="sellerId" required placeholder="seller-001">
+            </div>
+          </div>
+
+          <div class="row">
+            <label for="warehouseId">Warehouse Id<span class="req"> *</span></label>
+            <div class="field">
+              <input type="text" id="warehouseId" name="warehouseId" required placeholder="wh-001">
+            </div>
+          </div>
+
+          <div class="row">
+            <label for="expiring">만료형 Offline 토큰 (refresh_token)</label>
+            <div class="field">
+              <input type="checkbox" id="expiring" name="expiring" value="true">
+              <p class="hint">체크 시 expiring=true 로 start 에 가고, 콜백이 토큰 교환에 expiring=1 을 붙여 만료형 offline 토큰
+                (expires_in 3600, refresh_token 90일)을 받는다. 미체크면 비만료 offline(refresh_token 없음).</p>
+            </div>
+          </div>
+
+          <div class="section-title">서비스 보유 값 (사용자 입력 없음 · 함께 전송)</div>
+
+          <div class="row">
+            <label>Channel</label>
+            <div class="field"><input type="text" name="channel" value="shopify" readonly></div>
+          </div>
+          <div class="row">
+            <label>Region</label>
+            <div class="field"><input type="text" name="region" value="us" readonly></div>
+          </div>
+          <div class="row">
+            <label>Service</label>
+            <div class="field">
+              <input type="text" name="service" value="cgs" readonly>
+              <p class="hint">start 는 service 로 분기해 콜백까지 실어 나를 값을 조합한다. 실제로는 로그인한 서비스가 자기 값을 넣는다.</p>
+            </div>
+          </div>
+          <div class="row">
+            <label>Shop Name</label>
+            <div class="field"><input type="text" name="shop" value="test-ceip-store.myshopify.com" readonly></div>
+          </div>
+          <div class="row">
+            <label>Return URL</label>
+            <div class="field">
+              <input type="text" name="returnTo" value="/demo/return" readonly>
+              <p class="hint">콜백이 토큰 교환 뒤 302 할 곳. 상대 경로라 콜백 호스트(이 호스트)의 /demo/return 으로 온다.</p>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button type="submit">AUTHORIZE</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <p class="note">
+      AUTHORIZE 를 누르면 <code>{{startUrl}}</code> 로 GET 한다. sellerId, warehouseId 는 redirect_uri 가 아니라
+      서명 state 에 실려 콜백으로 돌아오고, /demo/return 쿼리에 그대로 붙는다.
+    </p>
+  </div>
+</body>
+</html>
