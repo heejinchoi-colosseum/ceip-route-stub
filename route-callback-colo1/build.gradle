@@ -1,31 +1,3 @@
 // colo1.0 용 콜백 모듈. route-callback(8081, cgs)과 같은 구성을 8082 에서 두 번째 cloudflared 호스트로 띄워,
 // start 가 service 별로 다른 redirect_uri 를 만들어도 인증이 성립하는지 검증한다. 코덱은 복제본이다(패키지는 다름).
-plugins {
-    // 버전은 루트 build.gradle 의 plugins 블록이 이미 클래스패스에 올려서, 여기선 id 만 적는다.
-    id 'java'
-    id 'org.springframework.boot'
-    id 'io.spring.dependency-management'
-}
-
-group = 'com.colosseum'
-version = '0.0.1-SNAPSHOT'
-
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
-}
-
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-web'
-    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-}
-
-tasks.named('test') {
-    useJUnitPlatform()
-}
+// 플러그인, 의존성, toolchain 은 루트 build.gradle 의 subprojects 블록에서 받는다.
